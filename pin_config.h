@@ -2,14 +2,13 @@
 
 #define XPOWERS_CHIP_AXP2101
 
+// DISPLAY
 #define LCD_SDIO0 4
 #define LCD_SDIO1 5
 #define LCD_SDIO2 6
 #define LCD_SDIO3 7
 #define LCD_SCLK 11
 #define LCD_CS 12
-#define LCD_WIDTH 368
-#define LCD_HEIGHT 448
 
 // TOUCH
 #define IIC_SDA 15
@@ -23,14 +22,14 @@
 #define I2S_WS_IO 45
 #define I2S_DO_IO 8
 
+#define MCLKPIN 16
+#define BCLKPIN 9
+#define WSPIN 45
+#define DOPIN 10
+#define DIPIN 8
+#define PA 46
 
-#define MCLKPIN             16
-#define BCLKPIN              9
-#define WSPIN               45
-#define DOPIN               10
-#define DIPIN                8
-#define PA                  46
-
+// GPS UART
 #define GPS_RX 18
 #define GPS_TX 17
 

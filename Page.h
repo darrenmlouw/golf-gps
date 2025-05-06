@@ -1,14 +1,23 @@
 #pragma once
 #include <lvgl.h>
+#include "GpsManager.h"
 
-/// Base class for any “screen/page”
 class Page {
-  public:
-    virtual ~Page() = default;
-    /// Called when this page is pushed onto the stack
-    virtual void onCreate() = 0;
-    /// Called when this page is popped off the stack
-    virtual void onDestroy() = 0;
-  protected:
-    lv_obj_t* scr_ = nullptr;
+public:
+  virtual ~Page() = default;
+  virtual void onCreate()  = 0;
+  virtual void onDestroy() = 0;
+
+  /** Pages override this to update their own labels. */
+  virtual void onGpsUpdate(const GpsData& d) { /* no-op */ }
+
+protected:
+  lv_obj_t* scr_       = nullptr;
+  lv_obj_t* ledStatus_ = nullptr;
+  lv_timer_t* gpsTimer_ = nullptr;  // <— new
+
+  void createBase(const char* title, bool canGoBack);
+  static void backEventCallback(lv_event_t* e);
+  static void swipeEventCallback(lv_event_t* e);
+  lv_color_t getFixColor(const GpsData& d);
 };

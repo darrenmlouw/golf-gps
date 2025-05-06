@@ -1,87 +1,81 @@
 #include "HomePage.h"
 #include "PageManager.h"
-#include "GpsViewPage.h"
-#include <Arduino.h>
-#include <lvgl.h>
+#include "CoursesPage.h"
+#include "LocationPage.h"
+#include "Layout.h"
+#include "icons.h"
 
-void HomePage::event_cb(lv_event_t *e) {
-  // recover our 'this'
-  HomePage* self = static_cast<HomePage*>(lv_event_get_user_data(e));
-  lv_obj_t* targ = lv_event_get_target(e);
-
-  if(targ == self->btnCourses_) {
-    Serial.println("🔹 Courses clicked");
-    // defer push in 1 ms
-    lv_timer_t* t = lv_timer_create([](lv_timer_t* tmr){
-      // inside timer callback, LVGL is idle
-      // PageManager::instance().pushPage(new CoursesPage());
-      lv_timer_del(tmr);
-    }, 1, nullptr);
-
-  } else if(targ == self->btnGpsView_) {
-    Serial.println("🔹 GPS View clicked");
-    // defer GPS view push by one tick
-    lv_timer_t* t = lv_timer_create([](lv_timer_t* tmr){
-      PageManager::instance().pushPage(new GpsViewPage());
-      lv_timer_del(tmr);
-    }, 1, nullptr);
-  }
-}
+static constexpr int BTN_H = 80;
 
 void HomePage::onCreate() {
-  // 1) Build screen
-  scr_ = lv_obj_create(nullptr);
-  lv_obj_set_style_bg_color(scr_, lv_color_black(), 0);
-  lv_obj_set_style_bg_opa  (scr_, LV_OPA_COVER,  0);
+  // root, no back button
+  createBase("GOLF GPS", /*showBack=*/false);
 
-  // 2) Title
-  {
-    auto lbl = lv_label_create(scr_);
-    lv_label_set_text(lbl, "Golf GPS Home");
-    lv_obj_set_style_text_color(lbl, lv_color_white(), 0);
-    lv_obj_set_style_text_font (lbl, &lv_font_montserrat_28, 0);
-    lv_obj_align(lbl, LV_ALIGN_TOP_MID, 0, 16);
+  // Prepare a reusable button style
+  static lv_style_t st_btn;
+  static bool btn_style_inited = false;
+  if (!btn_style_inited) {
+    lv_style_init(&st_btn);
+    lv_style_set_bg_color(&st_btn, lv_color_white());
+    lv_style_set_bg_opa(&st_btn, LV_OPA_80);
+    lv_style_set_radius(&st_btn, LV_RADIUS_CIRCLE);
+    btn_style_inited = true;
   }
 
-  // 3) “Courses” button
-  btnCourses_ = lv_btn_create(scr_);
-  lv_obj_set_size(btnCourses_, 200, 80);
-  lv_obj_align   (btnCourses_, LV_ALIGN_CENTER, 0, -60);
-  lv_obj_add_event_cb(
-    btnCourses_,
-    HomePage::event_cb,
-    LV_EVENT_CLICKED,
-    this           // <-- pass our pointer
-  );
-  {
-    auto l = lv_label_create(btnCourses_);
-    lv_label_set_text(l, "Courses");
-    lv_obj_center(l);
-  }
+  // Compute top-of-buttons y-pos (just under the title)
+  lv_coord_t th = lv_font_get_line_height(&lv_font_montserrat_48);
+  lv_coord_t y0 = PAD + th + PAD;
 
-  // 4) “GPS View” button
-  btnGpsView_ = lv_btn_create(scr_);
-  lv_obj_set_size(btnGpsView_, 200, 80);
-  lv_obj_align   (btnGpsView_, LV_ALIGN_CENTER, 0, +60);
-  lv_obj_add_event_cb(
-    btnGpsView_,
-    HomePage::event_cb,
-    LV_EVENT_CLICKED,
-    this           // <-- pass us again
-  );
-  {
-    auto l = lv_label_create(btnGpsView_);
-    lv_label_set_text(l, "GPS View");
-    lv_obj_center(l);
-  }
+  // Courses button
+   btnCourses_ = lv_btn_create(scr_);
+  lv_obj_add_style(btnCourses_, &st_btn, LV_PART_MAIN);
+  lv_obj_set_size(btnCourses_, LCD_WIDTH - 2 * PAD, BTN_H);
+  lv_obj_align(btnCourses_, LV_ALIGN_TOP_MID, 0, y0);
+  lv_obj_add_event_cb(btnCourses_, event_cb, LV_EVENT_CLICKED, this);
 
-  // 6) Show it
-  lv_scr_load(scr_);
+  auto iconCourses = lv_img_create(btnCourses_);
+  lv_img_set_src(iconCourses, &golf_50);
+  lv_obj_align(iconCourses, LV_ALIGN_LEFT_MID, 8, 0);
+
+  auto l1 = lv_label_create(btnCourses_);
+  lv_label_set_text(l1, "Courses");
+  lv_obj_set_style_text_font(l1, &lv_font_montserrat_32, LV_PART_MAIN);
+  lv_obj_set_style_text_color(l1, lv_color_black(), LV_PART_MAIN);
+  lv_obj_align(l1, LV_ALIGN_LEFT_MID, 80, 0);
+
+  // Location button
+  btnLocation_ = lv_btn_create(scr_);
+  lv_obj_add_style(btnLocation_, &st_btn, LV_PART_MAIN);
+  lv_obj_set_size(btnLocation_, LCD_WIDTH - 2 * PAD, BTN_H);
+  lv_obj_align(btnLocation_, LV_ALIGN_TOP_MID, 0, y0 + BTN_H + PAD);
+  lv_obj_add_event_cb(btnLocation_, event_cb, LV_EVENT_CLICKED, this);
+
+  auto iconLocation = lv_img_create(btnLocation_);
+  lv_img_set_src(iconLocation, &gps_50);
+  lv_obj_align(iconLocation, LV_ALIGN_LEFT_MID, 8, 0);
+
+  auto l2 = lv_label_create(btnLocation_);
+  lv_label_set_text(l2, "Location");
+  lv_obj_set_style_text_font(l2, &lv_font_montserrat_32, LV_PART_MAIN);
+  lv_obj_set_style_text_color(l2, lv_color_black(), LV_PART_MAIN);
+  lv_obj_align(l2, LV_ALIGN_LEFT_MID, 80, 0);
+
+  const auto d = GpsManager::instance().getData();
+  onGpsUpdate(d);
 }
 
 void HomePage::onDestroy() {
-  if(scr_) {
-    lv_obj_del(scr_);
-    scr_ = nullptr;
+  // First tear down any HomePage‐specific state (none in this case)
+  // Then call the base‐class cleanup to kill the timer + delete the screen:
+  Page::onDestroy();
+}
+void HomePage::event_cb(lv_event_t* e) {
+  if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+  auto btn = lv_event_get_target(e);
+  auto self = static_cast<HomePage*>(lv_event_get_user_data(e));
+  if (btn == self->btnCourses_) {
+    PageManager::instance().pushPage(new CoursesPage());
+  } else if (btn == self->btnLocation_) {
+    PageManager::instance().pushPage(new LocationPage());
   }
 }
