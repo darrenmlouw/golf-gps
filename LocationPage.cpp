@@ -85,7 +85,7 @@ void LocationPage::onCreate() {
   lv_obj_set_style_text_font(lblSats_, &lv_font_montserrat_18, LV_PART_MAIN);
   lv_obj_align(lblSats_, LV_ALIGN_BOTTOM_MID, 0, -PAD);
 
-  const auto d = GpsManager::instance().getData();
+  const auto d = GpsManager::instance().fetchData();
   onGpsUpdate(d);
 }
 

@@ -84,7 +84,7 @@ void Page::createBase(const char* title, bool canGoBack) {
   lv_scr_load(scr_);
 
   {
-    const auto d = GpsManager::instance().getData();
+    const auto d = GpsManager::instance().fetchData();
     lv_led_set_color(ledStatus_, getFixColor(d));
   }
 
@@ -92,7 +92,7 @@ void Page::createBase(const char* title, bool canGoBack) {
   gpsTimer_ = lv_timer_create(
     [](lv_timer_t* tmr) {
       auto self = static_cast<Page*>(tmr->user_data);
-      const auto d = GpsManager::instance().getData();
+      const auto d = GpsManager::instance().fetchData();
       lv_led_set_color(self->ledStatus_, self->getFixColor(d));
       self->onGpsUpdate(d);
     },

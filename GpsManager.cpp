@@ -1,5 +1,3 @@
-// GpsManager.cpp
-
 #include "GpsManager.h"
 #include <Arduino.h>
 
@@ -19,39 +17,30 @@ void GpsManager::begin(HardwareSerial* port,
   gpsSerial = port;
   GPS       = new Adafruit_GPS(gpsSerial);
 
-  // start GPS UART
   gpsSerial->begin(baud, SERIAL_8N1, rxPin, txPin);
   GPS->begin(baud);
 
-  // request all sentences at 5 Hz
   GPS->sendCommand(outCmd);
   GPS->sendCommand(hzCmd);
+  GPS->sendCommand("$PMTK313,1*2E");
+  GPS->sendCommand("$PMTK301,2*2E");
 
-  // 3) Enable SBAS search
-  GPS->sendCommand("$PMTK313,1*2E");   // enable SBAS
-
-  // 4) Use WAAS/EGNOS/etc as DGPS correction source
-  GPS->sendCommand("$PMTK301,2*2E");   // set DGPS mode to SBAS
-
-  // debug echo on USB serial
-  Serial.begin(115200);
+  Serial.begin(115200);  // only here
 }
 
 void GpsManager::update() {
   // 1) Drain parser buffer
   while (GPS->read()) { /* no-op */ }
 
-  // 2) If a new NMEA arrived, attempt to parse it
+  // 2) If new NMEA, parse and update data_
   if (GPS->newNMEAreceived()) {
     char* nmea = GPS->lastNMEA();
-    // Only handle GGA/RMC
-    if (   strncmp(nmea, "$GPGGA", 6) == 0
-        || strncmp(nmea, "$GNGGA", 6) == 0
-        || strncmp(nmea, "$GPRMC", 6) == 0
-        || strncmp(nmea, "$GNRMC", 6) == 0) {
-      GPS->parse(nmea);
+    if (!strncmp(nmea, "$GPGGA", 6) ||
+        !strncmp(nmea, "$GNGGA", 6) ||
+        !strncmp(nmea, "$GPRMC", 6) ||
+        !strncmp(nmea, "$GNRMC", 6)) {
 
-      // update full data_
+      GPS->parse(nmea);
       data_.fix        = GPS->fix;
       data_.fixQuality = GPS->fixquality;
       data_.lat        = GPS->latitudeDegrees;
@@ -67,15 +56,20 @@ void GpsManager::update() {
       data_.altitude   = GPS->altitude;
       data_.speedKnots = GPS->speed;
       data_.trackAngle = GPS->angle;
+
+      newData_ = true;
     }
   }
+}
 
-  // 3) Always print status once per update() call
-  if (!data_.fix) {
-    Serial.println("No fix");
-  } else {
-    Serial.printf("Fix: %.6f, %.6f\n",
-                  data_.lat,
-                  data_.lon);
-  }
+bool GpsManager::hasNewData() {
+  return newData_;
+}
+
+GpsData GpsManager::fetchData() {
+  noInterrupts();
+  GpsData snapshot = data_;
+  newData_ = false;
+  interrupts();
+  return snapshot;
 }

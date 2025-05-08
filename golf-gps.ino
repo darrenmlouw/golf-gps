@@ -13,7 +13,6 @@
 #include "GpsManager.h"
 #include "CoursesManager.h"
 #include "IMUManager.h"
-#include "SensorFusion.h"
 
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 static constexpr uint32_t LV_TICK_PERIOD_MS = 1;    // LVGL 1 ms tick
@@ -87,27 +86,6 @@ static void touchRead(lv_indev_drv_t *drv, lv_indev_data_t *data) {
       Arduino_IIC_Touch::Value_Information::TOUCH_COORDINATE_Y);
   } else {
     data->state = LV_INDEV_STATE_REL;
-  }
-}
-
-// IMU tick: read accel, run EKF predict
-static void onImuTick() {
-  static uint32_t lastUs = micros();
-  uint32_t now = micros();
-  float dt = (now - lastUs) * 1e-6f;
-  lastUs = now;
-
-  IMUManager::instance().update();
-  auto raw = IMUManager::instance().getRaw();
-  SensorFusion::instance().predict(raw.ax, raw.ay, dt);
-}
-
-// GPS tick: read fix, run EKF update
-static void onGpsTick() {
-  GpsManager::instance().update();
-  auto d = GpsManager::instance().getData();
-  if (d.fix) {
-    SensorFusion::instance().updateGPS(d.lat, d.lon);
   }
 }
 
@@ -193,17 +171,29 @@ static void initIMU() {
   imuTicker.attach_ms(IMU_TICK_MS, onImuTick);
 }
 
+
+// IMU tick: read accel, run EKF predict
+static void onImuTick() {
+  static uint32_t lastUs = micros();
+  uint32_t now = micros();
+  float dt = (now - lastUs) * 1e-6f;
+  lastUs = now;
+
+  IMUManager::instance().update();
+}
+
+// GPS tick: read fix, run EKF update
+static void onGpsTick() {
+  GpsManager::instance().update();
+}
+
+
 // ─── ARDUINO HOOKS ─────────────────────────────────────────────────────────
 void setup() {
   initSerial();
-
-  // set initial EKF covariances
-  SensorFusion::instance().initCov();
-
   initDisplay();
   initTouch();
   initLVGL();
-
   initGPS();
   initIMU();
 
@@ -212,18 +202,18 @@ void setup() {
 }
 
 void loop() {
-  // pump LVGL
-  lv_timer_handler();
-  // delay(2);
+  lv_timer_handler();  // pump LVGL
 
-  // optionally, print fused state every second
-  static uint32_t lastPrint = 0;
-  if (millis() - lastPrint > 1000) {
-    lastPrint = millis();
-    float lat, lon;
-    SensorFusion::instance().getFusedLatLon(lat, lon);
-    if (!isnan(lat)) {
-      Serial.printf("Golf position: %.8f, %.8f\n", lat, lon);
+  // ** Serial out moved here **
+  if (GpsManager::instance().hasNewData()) {
+    auto d = GpsManager::instance().fetchData();
+    if (!d.fix) {
+      Serial.println("No fix");
+    } else {
+      Serial.printf("Fix: %.6f, %.6f  sats:%u  HDOP:%.1f\n",
+                    d.lat, d.lon, d.sats, d.hdop);
     }
   }
+
+  delay(1);
 }

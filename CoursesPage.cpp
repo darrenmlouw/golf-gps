@@ -29,7 +29,7 @@ void CoursesPage::onCreate() {
   auto& courses = CoursesManager::instance().getCourses();
   std::vector<int> idx(courses.size());
   std::iota(idx.begin(), idx.end(), 0);
-  auto gps = GpsManager::instance().getData();
+  auto gps = GpsManager::instance().fetchData();
   if (gps.fix) {
     std::sort(idx.begin(), idx.end(), [&](int a, int b) {
       double da = std::pow(courses[a].location.lat - gps.lat, 2)
@@ -96,7 +96,7 @@ void CoursesPage::onCreate() {
     distSpinners_.push_back(sp);
   }
 
-  const auto d = GpsManager::instance().getData();
+  const auto d = GpsManager::instance().fetchData();
   onGpsUpdate(d);
 }
 

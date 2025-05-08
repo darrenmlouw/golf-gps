@@ -48,11 +48,11 @@ void IMUManager::update() {
   }
 
   // debug print every sample
-  Serial.printf(
-    "Acc: %.3f, %.3f, %.3f  |  Gyro: %.3f, %.3f, %.3f\n",
-    _raw.ax, _raw.ay, _raw.az,
-    _raw.gx, _raw.gy, _raw.gz
-  );
+  // Serial.printf(
+  //   "Acc: %.3f, %.3f, %.3f  |  Gyro: %.3f, %.3f, %.3f\n",
+  //   _raw.ax, _raw.ay, _raw.az,
+  //   _raw.gx, _raw.gy, _raw.gz
+  // );
 }
 
 void IMUManager::calibrate(int N) {

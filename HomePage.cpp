@@ -60,7 +60,7 @@ void HomePage::onCreate() {
   lv_obj_set_style_text_color(l2, lv_color_black(), LV_PART_MAIN);
   lv_obj_align(l2, LV_ALIGN_LEFT_MID, 80, 0);
 
-  const auto d = GpsManager::instance().getData();
+  const auto d = GpsManager::instance().fetchData();
   onGpsUpdate(d);
 }
 
