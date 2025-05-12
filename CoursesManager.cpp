@@ -24,6 +24,9 @@ void CoursesManager::parseCourses(JsonArray arr) {
     for (JsonObject holeJson : courseJson["holes"].as<JsonArray>()) {
       Hole h;
       h.number = holeJson["number"].as<int>();
+      h.par = holeJson.containsKey("par")
+                ? holeJson["par"].as<int>()
+                : 4;
       h.pin.lat = holeJson["pin"]["lat"].as<double>();
       h.pin.lon = holeJson["pin"]["lon"].as<double>();
       h.front.lat = holeJson["front"]["lat"].as<double>();

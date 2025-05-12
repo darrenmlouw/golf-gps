@@ -4,6 +4,7 @@
 #include <Ticker.h>                 // for lv_tick, GPS & IMU ticks
 #include <Arduino_GFX_Library.h>
 #include <Arduino_DriveBus_Library.h>
+
 #include <lvgl.h>
 
 #include "pin_config.h"             // LCD_*, TP_INT, IIC_SDA/SCL

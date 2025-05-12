@@ -74,11 +74,12 @@ void Page::createBase(const char* title, bool canGoBack) {
   lv_obj_align(ledStatus_, LV_ALIGN_RIGHT_MID, -PAD, 0);
 
   // ─── title ──────────────────────────────────────────────────────────
-  auto lbl = lv_label_create(hdr);
-  lv_label_set_text(lbl, title);
-  lv_obj_set_style_text_font(lbl, &lv_font_montserrat_48, LV_PART_MAIN);
-  lv_obj_set_style_text_color(lbl, lv_color_white(), LV_PART_MAIN);
-  lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 0);
+  // capture this for later updates
+  hdrLabel_ = lv_label_create(hdr);
+  lv_label_set_text(hdrLabel_, title);
+  lv_obj_set_style_text_font(hdrLabel_, &lv_font_montserrat_48, LV_PART_MAIN);
+  lv_obj_set_style_text_color(hdrLabel_, lv_color_white(), LV_PART_MAIN);
+  lv_obj_align(hdrLabel_, LV_ALIGN_CENTER, 0, 0);
 
   // ─── load it ────────────────────────────────────────────────────────
   lv_scr_load(scr_);
@@ -113,6 +114,9 @@ void Page::backEventCallback(lv_event_t* e) {
 void Page::swipeEventCallback(lv_event_t* e) {
   lv_indev_t* indev = lv_indev_get_act();
   if (lv_indev_get_gesture_dir(indev) == LV_DIR_RIGHT) {
+    // 1) Wait until the touch is released
+    lv_indev_wait_release(indev);
+    // 2) Clear all leftover touch state
     lv_indev_reset(indev, nullptr);
     lv_timer_create(
       [](lv_timer_t* tmr) {

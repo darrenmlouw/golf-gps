@@ -3,6 +3,7 @@
 #include "pin_config.h"  // for LCD_WIDTH
 #include "Layout.h"
 #include <Arduino.h>
+#include "HolePage.h"
 #include <cmath>
 #include <numeric>
 
@@ -102,14 +103,19 @@ void CoursesPage::onCreate() {
 
 void CoursesPage::onDestroy() {
   Page::onDestroy();
+
+  btns_.clear();
+  lblDist_.clear();
+  distSpinners_.clear();
 }
 
 void CoursesPage::event_cb(lv_event_t* e) {
   if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
   auto btn = lv_event_get_target(e);
+
   int ci = (int)(intptr_t)lv_obj_get_user_data(btn);
-  Serial.print("Selected course: ");
-  Serial.println(ci);
+  // Push into HolePage for that course
+  PageManager::instance().pushPage(new HolePage(ci));
 }
 
 void CoursesPage::onGpsUpdate(const GpsData& d) {

@@ -16,11 +16,13 @@ struct Hazard {
   Geo loc;
 };
 
+// CoursesManager.h
 struct Hole {
-  int number;
-  Geo pin;
-  Geo front;
-  Geo back;
+  int   number;
+  int   par;            // ← add this
+  Geo   pin;
+  Geo   front;
+  Geo   back;
   std::vector<Hazard> hazards;
 };
 

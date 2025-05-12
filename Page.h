@@ -15,6 +15,7 @@ protected:
   lv_obj_t* scr_       = nullptr;
   lv_obj_t* ledStatus_ = nullptr;
   lv_timer_t* gpsTimer_ = nullptr;  // <— new
+  lv_obj_t* hdrLabel_ = nullptr;
 
   void createBase(const char* title, bool canGoBack);
   static void backEventCallback(lv_event_t* e);
