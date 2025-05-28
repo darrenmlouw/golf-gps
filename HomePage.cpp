@@ -27,11 +27,14 @@ void HomePage::onCreate() {
   lv_coord_t y0 = PAD + th + PAD;
 
   // Courses button
-   btnCourses_ = lv_btn_create(scr_);
+  btnCourses_ = lv_btn_create(scr_);
   lv_obj_add_style(btnCourses_, &st_btn, LV_PART_MAIN);
   lv_obj_set_size(btnCourses_, LCD_WIDTH - 2 * PAD, BTN_H);
   lv_obj_align(btnCourses_, LV_ALIGN_TOP_MID, 0, y0);
-  lv_obj_add_event_cb(btnCourses_, event_cb, LV_EVENT_CLICKED, this);
+  lv_obj_add_event_cb(btnCourses_,
+                      HomePage::event_cb,  // <-- qualify it!
+                      LV_EVENT_SHORT_CLICKED,
+                      this);
 
   auto iconCourses = lv_img_create(btnCourses_);
   lv_img_set_src(iconCourses, &golf_50);
@@ -48,7 +51,10 @@ void HomePage::onCreate() {
   lv_obj_add_style(btnLocation_, &st_btn, LV_PART_MAIN);
   lv_obj_set_size(btnLocation_, LCD_WIDTH - 2 * PAD, BTN_H);
   lv_obj_align(btnLocation_, LV_ALIGN_TOP_MID, 0, y0 + BTN_H + PAD);
-  lv_obj_add_event_cb(btnLocation_, event_cb, LV_EVENT_CLICKED, this);
+  lv_obj_add_event_cb(btnLocation_,
+                      HomePage::event_cb,
+                      LV_EVENT_SHORT_CLICKED,
+                      this);
 
   auto iconLocation = lv_img_create(btnLocation_);
   lv_img_set_src(iconLocation, &gps_50);
@@ -69,10 +75,12 @@ void HomePage::onDestroy() {
   // Then call the base‐class cleanup to kill the timer + delete the screen:
   Page::onDestroy();
 }
+
 void HomePage::event_cb(lv_event_t* e) {
-  if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
-  auto btn = lv_event_get_target(e);
+  if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
   auto self = static_cast<HomePage*>(lv_event_get_user_data(e));
+  auto btn  = lv_event_get_target(e);
+
   if (btn == self->btnCourses_) {
     PageManager::instance().pushPage(new CoursesPage());
   } else if (btn == self->btnLocation_) {

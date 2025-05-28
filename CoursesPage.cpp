@@ -62,7 +62,7 @@ void CoursesPage::onCreate() {
     lv_obj_set_size(btn, LCD_WIDTH - 2 * PAD, BTN_H);
     lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, y0 + i * (BTN_H + PAD));
     lv_obj_set_user_data(btn, (void*)(intptr_t)ci);
-    lv_obj_add_event_cb(btn, CoursesPage::event_cb, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(btn, CoursesPage::event_cb, LV_EVENT_SHORT_CLICKED, this);
     btns_.push_back(btn);
 
     // name
@@ -110,7 +110,7 @@ void CoursesPage::onDestroy() {
 }
 
 void CoursesPage::event_cb(lv_event_t* e) {
-  if (lv_event_get_code(e) != LV_EVENT_CLICKED) return;
+  if (lv_event_get_code(e) != LV_EVENT_SHORT_CLICKED) return;
   auto btn = lv_event_get_target(e);
 
   int ci = (int)(intptr_t)lv_obj_get_user_data(btn);
